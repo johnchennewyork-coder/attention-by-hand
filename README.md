@@ -6,6 +6,9 @@ Attention using raw numpy
 attention (q,k,v) = softmax(q,k^T)/sqrt(d_key) * V
 
 # attention layer
+- often has a W_O matrix 
+- uses dropout on the attention weights
+- often MHA
 
-often was a W_O matrix 
-
+  
+# multi head attention
