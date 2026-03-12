@@ -38,7 +38,7 @@ class Attention(torch.nn.Module):
     mha_attn_weights = torch.nn.functional.softmax(mha_attn_logits, axis = -1)
     # mha_attn_weights @ V # BS x num_heads x seq_len x seq_len *** BS X seq_len X num_heads X self.d_key
     mha_context_vec = mha_attn_weights @ V.permute(0,2,1,3) BS x num_heads x seq_len x seq_len *** BS X num_heads X  seq_len X self.d_key  => BS x num_heads x seq_len x d_key 
-    mha_context_vec = mha_context_vec.permute(0,2,1,3) # BS x seq_len x num_heads x d_key
+    mha_context_vec = mha_context_vec.permute(0,2,1,3).contiguous() # BS x seq_len x num_heads x d_key; continguous before reshape
     mha_context_vec = mha_context_vec.reshape(mha_context_vec.shape[0],mha_context_vec.shape[1], -1)
     return self.W_o(mha_context_vec) 
     
