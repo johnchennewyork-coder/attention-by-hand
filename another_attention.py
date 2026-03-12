@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import torch # can also build an attention module
 
 
@@ -17,14 +18,12 @@ class Attention(torch.nn.Module):
     
 
   def forward(self, x):
-
+    Q = self.W_q(x) # d_model by d_model *** BS x seq_len x d_model   where d_model is also the embedding dim
+    K = self.W_k(x)
+    V = self.W_v(x) 
     if self.num_heads == 1:
-      Q = self.W_q(x) # d_model by d_model *** BS x seq_len x d_model   where d_model is also the embedding dim
-      K = self.W_k(x)
-      V = self.W_v(x) 
-  
       attn_logits = Q @ K.transpose(1,2)/math.sqrt(self.d_key) # BS x seq_len x d_model  *** BS x d_model x seq_len =>  BS x seq_len x seq_len # NOTE this could also be called logits 
-      attn_weights = torch.nn.Functional.softmax(attn_logits, axis = -1) # normalize across keys; for each query, find the set of keys
+      attn_weights = torch.nn.functional.softmax(attn_logits, dim = -1) # normalize across keys; for each query, find the set of keys
       return attn_weights @ V # bs x seq_len x seq_len *** bs x seq_len x d_model => bs x seq_len x d_model (context vector)
      
     # MHA case
@@ -35,8 +34,8 @@ class Attention(torch.nn.Module):
     mha_V = V.reshape(V.shape[0], V.shape[1], -1, self.d_key) #  BS x seq_len x d_model ->  BS x seq_len x num_heads x d_key
 
     # BS x num_heads x seq_len x d_key *** BS x num_heads x d_key x seq_len => BS x num_heads x seq_len x seq_len
-    mha_attn_logits = Q.permute(0,2,1,3) @ K.transpose(0,2,3,1)/math.sqrt(self.d_key)
-    mha_attn_weights = torch.nn.Functional.softmax(mha_attn_logits, axis = -1)
+    mha_attn_logits = Q.permute(0,2,1,3) @ K.permute(0,2,3,1)/math.sqrt(self.d_key)
+    mha_attn_weights = torch.nn.functional.softmax(mha_attn_logits, axis = -1)
     # mha_attn_weights @ V # BS x num_heads x seq_len x seq_len *** BS X seq_len X num_heads X self.d_key
     mha_context_vec = mha_attn_weights @ V.permute(0,2,1,3) BS x num_heads x seq_len x seq_len *** BS X num_heads X  seq_len X self.d_key  => BS x num_heads x seq_len x d_key 
     mha_context_vec = mha_context_vec.permute(0,2,1,3) # BS x seq_len x num_heads x d_key
