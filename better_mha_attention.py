@@ -30,5 +30,5 @@ class Attention(nn.Module):
     attn_logits = Q @ K.transpose(-2,-1)/math.sqrt(self.d_key) # seq_len * seq_len
     attn_weights = F.softmax(attn_logits, dim = -1) 
     context_vector = attn_weights @ V # V has trailing d_key
-    concatted = context_vector.contiguous().transpose(1,2).reshape(B, T, -1) 
-    return self.W_o(concatted)
+    concat_heads = context_vector.contiguous().transpose(1,2).reshape(B, T, -1) 
+    return self.W_o(concat_heads)
