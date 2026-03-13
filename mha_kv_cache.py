@@ -19,7 +19,7 @@ class Attention(nn.Module):
     self.dropout = nn.Dropout() # default dropout percentage
 
   def forward(self, x):
-    BS, T, _ = x
+    BS, T, _ = x.shape
     
     Q = self.W_q(x)
     K = self.W_k(x)
