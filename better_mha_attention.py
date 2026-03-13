@@ -5,7 +5,7 @@ import math
 
 class Attention(nn.Module):
   def __init__(self, d_model, num_heads):
-    __super__.init()
+    super().__init__()
     self.d_model = d_model
     self.d_key = d_model // num_heads
     
@@ -17,6 +17,7 @@ class Attention(nn.Module):
     
     
   def forward(self, x):
+    BS, T, _ = x.shape
     Q = self.W_q(x)
     K = self.W_k(x)
     V = self.W_v(x) 
@@ -29,5 +30,5 @@ class Attention(nn.Module):
     attn_logits = Q @ K.transpose(-2,-1)/math.sqrt(self.d_key) # seq_len * seq_len
     attn_weights = F.softmax(attn_logits, dim = -1) 
     context_vector = attn_weights @ V # V has trailing d_key
-    concatted = context_vector.contiguous().transpose(1,2).reshape(Q.shape[0], Q.shape[1], -1) 
+    concatted = context_vector.contiguous().transpose(1,2).reshape(B, T, -1) 
     return self.W_o(concatted)
