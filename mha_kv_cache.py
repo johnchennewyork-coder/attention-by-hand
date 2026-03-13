@@ -33,7 +33,7 @@ class Attention(nn.Module):
 
     attn_logits = Q @ K.transpose(-2,-1)/math.sqrt(self.d_key) # swap last two dimensions
     if self.causal_mask:
-        mask = torch.tril(torch.ones(attn_logits.shape, x.device))  # zero out the upper right 
+        mask = torch.tril(torch.ones(T,T, device=x.device))  # zero out the upper right 
         attn_logits.masked_fill_(mask == 0, -float('inf'))
       
     attn_weights = F.softmax(attn_logits, dim=-1)
