@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-
+# torch.nn.functional.scaled_dot_product_attention (SDPA)
 class Attention(nn.Module):
-  def __init__(self, d_model, num_heads):
+  def __init__(self, d_model, num_heads, dropout_p=0.1):
     super().__init__()
     self.d_model = d_model
     self.num_heads = num_heads
@@ -16,7 +16,7 @@ class Attention(nn.Module):
     self.W_q = nn.Linear(self.d_model, self.d_model)
     self.W_v = nn.Linear(self.d_model, self.d_model)
     self.W_o = nn.Linear(self.d_model, self.d_model)
-    self.dropout = nn.Dropout() # default dropout percentage
+    self.dropout = nn.Dropout(dropout_p) # default dropout percentage
 
   def forward(self, x):
     BS, T, _ = x.shape
