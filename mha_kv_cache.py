@@ -18,12 +18,12 @@ class Attention(nn.Module):
     self.W_o = nn.Linear(self.d_model, self.d_model)
     self.dropout = nn.Dropout() # default dropout percentage
 
-  def forward(x):
+  def forward(self, x):
     BS, T, _ = x
     
     Q = self.W_q(x)
-    K = self.W_q(x)
-    V = self.W_q(x)
+    K = self.W_k(x)
+    V = self.W_v(x)
 
     # MHA: BS X T X H X d_key
     Q = Q.view(BS, T, self.num_heads, -1).transpose(1,2)
