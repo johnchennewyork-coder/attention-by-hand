@@ -4,7 +4,10 @@ import torch.nn.functional as F
 import math
 
 class Attention(nn.Module):
-  def __init__(self, d_model, num_heads):
+  '''
+  Now add masking
+  '''
+  def __init__(self, d_model, num_heads, causal_mask = False, ):
     super().__init__()
     self.d_model = d_model
     self.d_key = d_model // num_heads
@@ -13,11 +16,17 @@ class Attention(nn.Module):
     self.W_k = nn.Linear(self.d_model, self.d_model)
     self.W_v = nn.Linear(self.d_model, self.d_model)
     self.W_o = nn.Linear(self.d_model, self.d_model)
+
+    self.causal_mask = causal_mask
     
-    
+
+      
     
   def forward(self, x):
-    BS, T, _ = x.shape
+    B, T, _ = x.shape
+
+
+    
     Q = self.W_q(x)
     K = self.W_k(x)
     V = self.W_v(x) 
@@ -28,6 +37,17 @@ class Attention(nn.Module):
     V = V.reshape(V.shape[0], V.shape[1], -1, self.d_key).permute(0,2,1,3)
 
     attn_logits = Q @ K.transpose(-2,-1)/math.sqrt(self.d_key) # seq_len * seq_len
+    # mask the logits is easier, though we could mask keys
+
+    # the main matrix diagonal is upper left to bottom right, the condition is j >= i for upper triangular
+    # for lower triangular, the condition is  i >= j. Note that these partition the matrix.
+    # compare with the antidiagonals as well
+    if self.causal_mask: # needs to be T x T
+      mask = torch.tril(torch.ones(T,T, x.device))  # for all i <= j, set to 1
+      # mask = torch.tril(attn_logits)
+      attn_logits = attn_logits.masked_fill(mask==0, -float('inf'))
+    
+    
     attn_weights = F.softmax(attn_logits, dim = -1) 
     context_vector = attn_weights @ V # V has trailing d_key
     concat_heads = context_vector.contiguous().transpose(1,2).reshape(B, T, -1) 
