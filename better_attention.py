@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
-import torch.nn.Functional as F
+import torch.nn.functional as F
 import math
 
 class Attention(nn.Module):
   
   def __init__(self, d_model, num_heads):  
+    super().__init__()
     self.d_model = d_model
     self.d_key = self.d_model//num_heads
     
@@ -21,7 +22,7 @@ class Attention(nn.Module):
     
     attn_logits = Q @ K.transpose(-2,-1) / math.sqrt(self.d_key)
     attn_weights = F.softmax(attn_logits, dim=-1) 
-    context_vector = attn_weight * V
+    context_vector = attn_weight @ V
     
     return context_vector
     
