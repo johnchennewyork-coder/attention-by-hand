@@ -33,7 +33,8 @@ class Attention(nn.Module):
     attn_logits = Q @ K.transpose(-2,-1)/math.sqrt(self.d_key) # swap last two dimensions
     attn_weights = F.softmax(attn_logits, dim=-1)
     attn_weights = self.dropout(attn_weights)
-    concatted_heads = attn_weights.transpose(1,2).contiguous().view(BS, T, -1)
+    context_vec = attn_weights @ V 
+    concatted_heads = context_vec.transpose(1,2).contiguous().view(BS, T, -1)
     return self.W_o(concatted_heads)
     
     
