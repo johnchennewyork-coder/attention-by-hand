@@ -11,6 +11,7 @@ class Attention(nn.Module):
     self.d_model = d_model
     assert d_model % num_heads == 0, "num_heads must cleanly divide d_model"
     self.d_key = d_model//num_heads
+    self.num_heads = num_heads
     self.W_qkv = nn.Linear(self.d_model, 3*self.d_model)
     self.W_o = nn.Linear(self.d_model, self.d_model)
     self.causal_mask = causal_mask
