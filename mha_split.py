@@ -27,6 +27,10 @@ class Attention(nn.Module):
   
     # K = BS X MHA X T X D_KEY
     attn_logits = Q @ K.transpose(-1, -2)/math.sqrt(self.d_key)
+    if self.causal_mask:
+      mask = torch.tril(torch.ones(T,T,device=x.device))
+      attn_logits.masked_fill_(mask == 0, -float('inf'))
+      
     attn_weights = F.softmax(attn_logits, dim=-1)
     attn_weights = self.dropout(attn_weights) # during inference, dropout layers are turned off completely
     context_vector = attn_weights @ V # BS MHA T_q, T_k
