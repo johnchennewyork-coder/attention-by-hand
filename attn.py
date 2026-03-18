@@ -29,7 +29,7 @@ class Attention(nn.Module):
         attn_logits = Q @ K.transpose(2,3)/math.sqrt(self.d_key)
         if self.causal_mask:
           mask = torch.tril(torch.ones(T,T, device = x.device))
-          attn_logits.masked_fill_(mask == 0 , -float('inf'))
+          attn_logits.masked_fill_(mask == 0 , -1e-10)
           
         attn_weights = F.softmax(attn_logits, dim=-1)
         attn_weights = self.dropout(attn_weights)
