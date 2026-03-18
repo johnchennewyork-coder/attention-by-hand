@@ -16,7 +16,7 @@ class Attention(nn.Module):
         self.dropout = nn.Dropout(dropout_p)
         self.causal_mask = causal_mask
 
-    def forward(self, x):
+    def forward(self, x, kv_cache = None):
         BS, T , _ = x.shape
         QKV = self.W_qkv(x)
         Q, K, V = QKV.split(self.d_model, dim=-1)
@@ -26,6 +26,14 @@ class Attention(nn.Module):
         K = K.view(BS, T, self.num_heads, self.d_key).transpose(1,2)
         V = V.view(BS, T, self.num_heads, self.d_key).transpose(1,2)
 
+        if kv_cache:
+            prev_k, prev_v = kv_cache 
+            K = torch.cat([K, prev_k], dim=2)
+            V = torch.cat([V, prev_v], dim=2)
+
+        new_kv_cache = (K, V)
+
+            
         attn_logits = Q @ K.transpose(2,3)/math.sqrt(self.d_key)
         if self.causal_mask:
           mask = torch.tril(torch.ones(T,T, device = x.device))
@@ -35,7 +43,7 @@ class Attention(nn.Module):
         attn_weights = self.dropout(attn_weights)
         context_vector = attn_weights @ V # BS x mha x T_q x d_key
         concatted_heads = context_vector.transpose(1,2).contiguous().reshape(BS, T, self.d_model)
-        return self.W_o(concatted_heads)
+        return self.W_o(concatted_heads), new_kv_cache
       
         
         
