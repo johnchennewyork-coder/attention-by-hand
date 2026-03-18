@@ -4,13 +4,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-class Attention:
+class Attention(nn.Module):
     def __init__(self, d_model, num_heads, causal_mask=False, dropout_p=0.1):
         super().__init__()
         self.d_model = d_model
         self.num_heads = num_heads
         assert self.d_model % self.num_heads == 0, 'num heads must cleanly divide d_model'
-
+        self.d_key = d_model / num_heads
         self.W_qkv = nn.Linear(self.d_model, 3*self.d_model)
         self.W_o = nn.Linear(self.d_model, self.d_model)
         self.dropout = nn.Dropout(dropout_p)
@@ -19,7 +19,7 @@ class Attention:
     def forward(self, x):
         BS, T , _ = x.shape
         QKV = self.W_qkv(x)
-        Q, K, V = QKV.split(d_model, dim=-1)
+        Q, K, V = QKV.split(self.d_model, dim=-1)
 
         # reshape into MHA format
         Q = Q.view(BS, T, self.num_heads, self.d_key).transpose(1,2)
