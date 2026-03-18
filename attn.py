@@ -10,7 +10,7 @@ class Attention(nn.Module):
         self.d_model = d_model
         self.num_heads = num_heads
         assert self.d_model % self.num_heads == 0, 'num heads must cleanly divide d_model'
-        self.d_key = d_model / num_heads
+        self.d_key = d_model // num_heads
         self.W_qkv = nn.Linear(self.d_model, 3*self.d_model)
         self.W_o = nn.Linear(self.d_model, self.d_model)
         self.dropout = nn.Dropout(dropout_p)
@@ -28,16 +28,17 @@ class Attention(nn.Module):
 
         if kv_cache:
             prev_k, prev_v = kv_cache 
-            K = torch.cat([K, prev_k], dim=2)
-            V = torch.cat([V, prev_v], dim=2)
+            K = torch.cat([prev_k, K], dim=2)
+            V = torch.cat([prev_v, V], dim=2)
 
         new_kv_cache = (K, V)
-
+        
             
         attn_logits = Q @ K.transpose(2,3)/math.sqrt(self.d_key)
         if self.causal_mask:
-          mask = torch.tril(torch.ones(T,T, device = x.device))
-          attn_logits.masked_fill_(mask == 0 , -1e-10)
+            if T>1:
+              mask = torch.tril(torch.ones(T, K.shape[2], device = x.device))
+              attn_logits.masked_fill_(mask == 0 , -float('inf'))
           
         attn_weights = F.softmax(attn_logits, dim=-1)
         attn_weights = self.dropout(attn_weights)
