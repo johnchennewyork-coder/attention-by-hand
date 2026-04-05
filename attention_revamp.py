@@ -20,7 +20,7 @@ class Attention(nn.Module):
     BS, T_q, d_model = x.shape
 
     QKV = self.W_qkv(x)
-    Q, K, V = QKV.split(self.d_model, dim=2)
+    Q, K, V = QKV.split(self.d_model, dim=-1)
 
     # transpose, reshaping
     mha_q = Q.reshape(BS, T_q, self.num_heads, self.d_key).transpose(1,2)
@@ -28,8 +28,8 @@ class Attention(nn.Module):
     mha_v = V.reshape(BS, T_q, self.num_heads, self.d_key).transpose(1,2)
 
     attn_logits = mha_q @ mha_k.transpose(-2,-1)/math.sqrt(self.d_key) 
-    attn_weights = F.softmax(attn_logits, dim=-1)
-    context_vector = attn_weights @ mha_v # 
+    attn_weights = self.dropout(F.softmax(attn_logits, dim=-1))
+    context_vector = attn_weights @ mha_v 
     concatted_vec = context_vector.transpose(1,2).contiguous().view(BS, T_q, self.d_model)
     output_vec  = self.W_o(concatted_vec)
     return output_vec 
