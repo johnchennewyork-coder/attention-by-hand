@@ -7,6 +7,7 @@ import torch.nn.functional as F
 
 class UseRNN(nn.Module):
   def __init__(self,input_size, hidden_size, output_size):
+    super(UseRNN, self).__init__()
     self.rnn = nn.RNN(input_size, hidden_size)
     self.out = nn.Linear(hidden_size, output_size)
     
