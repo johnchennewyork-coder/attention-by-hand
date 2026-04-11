@@ -11,6 +11,7 @@ import torch.nn.functional as F
 
 class UseRNN(nn.Module):
   def __init__(self, input_size, hidden_size, output_size):
+    super(UseRNN, self).__init__()
     self.rnn = nn.RNN(input_size, hidden_size)
     self.out = nn.Linear(hidden_size, output_size)
   
@@ -18,17 +19,6 @@ class UseRNN(nn.Module):
     rnn_out, hidden = self.rnn(x)
     out = self.out(rnn_out)
     return out, hidden
-
-class RegularNN(nn.Module):
-  def __init__(self,input_size, hidden_size, output_size):
-    super(RegularNN, self).__init__()
-    self.input = nn.Linear(input_size, hidden_size)
-    self.h1 = nn.Linear(hidden_size, output_size)
-    
-  def forward(self, x):
-    intermediate = self.input(x)
-    out = F.ReLU(self.h1(intermediate))
-    return out 
 
 class BasicRNN(nn.Module):
   def __init__(self,input_size, hidden_size, output_size):
@@ -40,6 +30,21 @@ class BasicRNN(nn.Module):
     hidden = self.i2h(x)
     out = self.h2o(F.ReLU(hidden))
     return out 
+
+class Basic2LayerRNN(nn.Module):
+  def __init__(self, input_size, hidden_size, num_layers, output_size):
+    super(Basic2LayerRNN, self).__init__()
+    self.i2h = nn.RNN(input_size, hidden_size)
+    self.h2h = nn.RNN(hidden_size, hidden_size)
+    self.h2o = nn.RNN(hidden_size, output_size)
+
+  def forward(self, x):
+    rnn_out1, hidden = self.i2h(x)
+    rnn_out2, hidden2 = self.h2h(rnn_out1)
+    return self.h2o(rnn_out2), hidden2
+    
+    
+  
 
 def generate_train_data():
   vals = torch.randn()
