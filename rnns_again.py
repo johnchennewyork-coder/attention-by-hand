@@ -16,3 +16,16 @@ class RNN(nn.Module):
     out = self.h2o(output)
     return out
 
+
+'''
+BS, T, H (like a transformer). 
+
+Then, output is BS, T, H (like a transformer).  
+On the other hand, hidden is:
+D, BS, H. (where T is implicitly set to -1) # the 'final' hidden state
+
+recall:
+BS , T_q, D_model  => for each example, we produce an output for each timestep , of the same size
+
+What is the input and output of transformer? It returns the same size 
+'''
